@@ -29,9 +29,10 @@ interface PostPagination {
 
 interface HomeProps {
   postsPagination: PostPagination;
+  preview: boolean;
 }
 
-export default function Home({ postsPagination }: HomeProps): JSX.Element {
+export default function Home({ postsPagination, preview }: HomeProps): JSX.Element {
   const formattedPost = postsPagination.results.map(post => {
     return {
       ...post,
@@ -54,7 +55,7 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
       return;
     }
 
-    const postsResults = await fetch(`${nextPage}`).then(response => 
+    const postsResults = await fetch(`${nextPage}`).then(response =>
       response.json()
     );
 
@@ -92,7 +93,7 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
 
         <div className={styles.posts}>
           {posts.map(post => (
-            <Link key={post.uid} href={`/post/${post.uid}`}>  
+            <Link key={post.uid} href={`/post/${post.uid}`}>
               <a className={styles.post}>
                 <strong>{post.data.title}</strong>
                 <p>{post.data.subtitle}</p>
@@ -119,12 +120,20 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
             </button>
           )}
         </div>
+
+        {preview && (
+          <aside>
+            <Link href="/api/exit-preview">
+              <a className={commonStyles.preview}>Sair do Modo Preview</a>
+            </Link>
+          </aside>
+        )}
       </main>
     </>
   );
 }
 
-export const getStaticProps: GetStaticProps = async () => {
+export const getStaticProps: GetStaticProps = async ({ preview = false }) => {
   const prismic = getPrismicClient();
   const postsResponse = await prismic.query(
     [Prismic.Predicates.at('document.type', 'post')], 
@@ -152,7 +161,8 @@ export const getStaticProps: GetStaticProps = async () => {
 
   return {
     props: {
-      postsPagination
+      postsPagination,
+      preview
     },
   }
 };
